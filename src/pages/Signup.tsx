@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { AuthLayout } from "@/components/AuthLayout";
@@ -7,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -18,7 +16,7 @@ export default function Signup() {
   const navigate = useNavigate();
   const { toast } = useToast();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
     if (password !== confirmPassword) {
@@ -32,40 +30,17 @@ export default function Signup() {
     
     setIsLoading(true);
     
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: {
-            full_name: name,
-          },
-        },
-      });
-
-      if (error) {
-        toast({
-          title: "Error",
-          description: error.message,
-          variant: "destructive",
-        });
-        return;
-      }
-
+    // Simulate auth delay
+    setTimeout(() => {
+      // For now, let's just accept any inputs
+      localStorage.setItem("herdflow-user", JSON.stringify({ email, name }));
       toast({
         title: "Account created",
-        description: "Please check your email to verify your account before logging in.",
+        description: "You've successfully signed up!",
       });
-      navigate("/login");
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "An unexpected error occurred",
-        variant: "destructive",
-      });
-    } finally {
+      navigate("/dashboard");
       setIsLoading(false);
-    }
+    }, 1000);
   };
 
   return (
