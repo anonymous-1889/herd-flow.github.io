@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Signup() {
   const [name, setName] = useState("");
@@ -31,17 +32,40 @@ export default function Signup() {
     
     setIsLoading(true);
     
-    // Simulate auth delay
-    setTimeout(() => {
-      // For now, let's just accept any inputs
-      localStorage.setItem("herdflow-user", JSON.stringify({ email, name }));
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: name,
+          },
+        },
+      });
+
+      if (error) {
+        toast({
+          title: "Error",
+          description: error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
       toast({
         title: "Account created",
-        description: "You've successfully signed up!",
+        description: "Please check your email to verify your account before logging in.",
       });
-      navigate("/dashboard");
+      navigate("/login");
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
