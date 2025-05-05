@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { ArrowRight, BarChart3, Cow, Users } from "lucide-react";
+import { ArrowRight, BarChart3, Beef, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
@@ -10,7 +10,7 @@ export default function Landing() {
       {/* Header */}
       <header className="container mx-auto px-4 py-6 flex items-center justify-between">
         <div className="flex items-center space-x-2">
-          <Cow className="h-8 w-8 text-farm-green-600 dark:text-farm-green-400" />
+          <Beef className="h-8 w-8 text-farm-green-600 dark:text-farm-green-400" />
           <span className="text-2xl font-bold text-farm-green-700 dark:text-farm-green-300">HerdFlow AI</span>
         </div>
         <div className="flex items-center space-x-4">
@@ -55,7 +55,7 @@ export default function Landing() {
             <Card className="border-0 shadow-lg bg-farm-green-50 dark:bg-farm-green-900">
               <CardContent className="p-6 flex flex-col items-center text-center">
                 <div className="h-16 w-16 bg-farm-green-100 dark:bg-farm-green-800 rounded-full flex items-center justify-center mb-4">
-                  <Cow className="h-8 w-8 text-farm-green-600 dark:text-farm-green-400" />
+                  <Beef className="h-8 w-8 text-farm-green-600 dark:text-farm-green-400" />
                 </div>
                 <h3 className="text-xl font-bold text-farm-green-700 dark:text-farm-green-300 mb-2">Comprehensive Cattle Tracking</h3>
                 <p className="text-farm-brown-600 dark:text-farm-brown-300">
@@ -109,7 +109,7 @@ export default function Landing() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center">
             <div className="flex items-center space-x-2 mb-6 md:mb-0">
-              <Cow className="h-6 w-6" />
+              <Beef className="h-6 w-6" />
               <span className="text-xl font-bold">HerdFlow AI</span>
             </div>
             <div className="flex flex-col md:flex-row space-y-4 md:space-y-0 md:space-x-8">
