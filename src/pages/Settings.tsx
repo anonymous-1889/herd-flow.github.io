@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -10,6 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/components/ThemeProvider";
 import { Moon, Sun, ToggleLeft, ToggleRight } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Settings() {
   const { toast } = useToast();
@@ -22,32 +22,73 @@ export default function Settings() {
     email: "",
     farm: "",
   });
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
     // Load user data
-    const userData = localStorage.getItem("herdflow-user");
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      setProfile({
-        name: parsed.name || "",
-        email: parsed.email || "",
-        farm: parsed.farm || "My Farm",
-      });
-    }
+    const fetchUserProfile = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (user) {
+        // Get user email from auth
+        setProfile(prev => ({ ...prev, email: user.email || "" }));
+        
+        // Fetch profile data from profiles table
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+        
+        if (data && !error) {
+          setProfile(prev => ({
+            ...prev,
+            name: data.name || "",
+            farm: data.farm_name || "",
+          }));
+        }
+      }
+    };
+    
+    fetchUserProfile();
   }, []);
   
-  const saveProfile = () => {
-    // Save profile data
-    const userData = localStorage.getItem("herdflow-user");
-    if (userData) {
-      const parsed = JSON.parse(userData);
-      const updated = { ...parsed, ...profile };
-      localStorage.setItem("herdflow-user", JSON.stringify(updated));
+  const saveProfile = async () => {
+    setIsLoading(true);
+    
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        throw new Error("User not found");
+      }
+      
+      // Update profile in the database
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          name: profile.name,
+          farm_name: profile.farm,
+          updated_at: new Date().toISOString(),
+        })
+        .eq('id', user.id);
+      
+      if (error) {
+        throw error;
+      }
       
       toast({
         title: "Profile updated",
         description: "Your profile information has been saved",
       });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update profile",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
   
@@ -93,8 +134,10 @@ export default function Settings() {
                     id="email" 
                     type="email" 
                     value={profile.email} 
-                    onChange={(e) => setProfile({...profile, email: e.target.value})}
+                    disabled
+                    className="bg-gray-100"
                   />
+                  <p className="text-sm text-muted-foreground">Email cannot be changed</p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="farm">Farm Name</Label>
@@ -109,7 +152,9 @@ export default function Settings() {
               <Separator />
               
               <div className="flex justify-end">
-                <Button onClick={saveProfile}>Save Changes</Button>
+                <Button onClick={saveProfile} disabled={isLoading}>
+                  {isLoading ? "Saving..." : "Save Changes"}
+                </Button>
               </div>
             </CardContent>
           </Card>
