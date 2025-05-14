@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      cattle: {
+        Row: {
+          birth_date: string
+          breed: string
+          cattle_type: string
+          created_at: string
+          gender: string
+          id: string
+          name: string | null
+          notes: string | null
+          status: string
+          tag_id: string
+          updated_at: string
+          user_id: string
+          weight: number
+        }
+        Insert: {
+          birth_date: string
+          breed: string
+          cattle_type: string
+          created_at?: string
+          gender: string
+          id?: string
+          name?: string | null
+          notes?: string | null
+          status?: string
+          tag_id: string
+          updated_at?: string
+          user_id: string
+          weight: number
+        }
+        Update: {
+          birth_date?: string
+          breed?: string
+          cattle_type?: string
+          created_at?: string
+          gender?: string
+          id?: string
+          name?: string | null
+          notes?: string | null
+          status?: string
+          tag_id?: string
+          updated_at?: string
+          user_id?: string
+          weight?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

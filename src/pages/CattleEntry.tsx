@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -16,10 +16,11 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { supabase } from "@/integrations/supabase/client";
 
 const formSchema = z.object({
   tagId: z.string().min(2, "Tag ID is required"),
-  name: z.string().min(2, "Name is required"),
+  name: z.string().optional(),
   breed: z.string().min(2, "Breed is required"),
   cattleType: z.string().min(1, "Cattle type is required"),
   birthDate: z.date({
@@ -34,8 +35,27 @@ type FormValues = z.infer<typeof formSchema>;
 
 export default function CattleEntry() {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<any>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const { data, error } = await supabase.auth.getUser();
+      if (error) {
+        console.error("Error fetching user:", error);
+        navigate("/login");
+        return;
+      }
+      if (data?.user) {
+        setUser(data.user);
+      } else {
+        navigate("/login");
+      }
+    };
+    
+    checkUser();
+  }, [navigate]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -51,18 +71,57 @@ export default function CattleEntry() {
   });
 
   const onSubmit = async (data: FormValues) => {
+    if (!user) {
+      toast({
+        title: "Authentication error",
+        description: "You must be logged in to add cattle",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsSubmitting(true);
     
-    // Simulate submission delay
-    setTimeout(() => {
-      console.log(data);
+    // Format the data for Supabase
+    const cattleData = {
+      tag_id: data.tagId,
+      name: data.name || null,
+      breed: data.breed,
+      cattle_type: data.cattleType,
+      birth_date: format(data.birthDate, "yyyy-MM-dd"),
+      weight: parseFloat(data.weight),
+      gender: data.gender,
+      notes: data.notes || null,
+      user_id: user.id,
+    };
+    
+    try {
+      const { error } = await supabase
+        .from('cattle')
+        .insert(cattleData);
+      
+      if (error) {
+        throw error;
+      }
+      
       toast({
         title: "Cattle added",
-        description: `Successfully added ${data.name} to your herd`,
+        description: `Successfully added ${data.name || data.tagId} to your herd`,
       });
-      setIsSubmitting(false);
+      
+      // Reset form and redirect
       form.reset();
-    }, 1000);
+      navigate("/livestock");
+    } catch (error: any) {
+      console.error("Error adding cattle:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add cattle",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
